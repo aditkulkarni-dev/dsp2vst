@@ -1,10 +1,9 @@
 #pragma once
 #include <string>
 #include <memory>
-#include "AudioBuffer.h"
 #include "../effects/EffectChain.h"
 #include "../effects/Effect.h"
-
+#include "AudioBuffer_opt.h"
 
 class AudioEngine{
 public:

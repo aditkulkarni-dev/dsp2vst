@@ -2,6 +2,8 @@
 #include <string>
 #include "../audio/AudioBuffer_opt.h"
 #include <vector>
+#include <memory>
+
 
 class AudioFileIO{
 

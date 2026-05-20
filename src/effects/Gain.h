@@ -1,5 +1,5 @@
 #include "Effect.h"
-#include "../audio/AudioBuffer.h"
+#include "../audio/AudioBuffer_opt.h"
 #include <memory>
 
 class Gain : public Effect{
@@ -7,7 +7,7 @@ public:
     Gain() = default;
     explicit Gain(float gainAmount);
 
-    void process(AudioBuffer& buffer) override;
+    void process(float* data, int numSamples) override;
 
     void setGain(float newGain);
     float getGain() const;

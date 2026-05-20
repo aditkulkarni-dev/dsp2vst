@@ -1,5 +1,5 @@
 #include "Effect.h"
-#include "../audio/AudioBuffer.h"
+#include "../audio/AudioBuffer_opt.h"
 #include "../dsp/CircularBuffer.h"
 #include <memory>
 
@@ -9,7 +9,7 @@ public:
     ffDelay(int delay, float mix, int bufferSize=256) : delay(delay), mix(mix){
         buffer.setSize(bufferSize);
     }
-    void process(AudioBuffer& Buffer) override;
+    void process(float* data, int numSamples) override;
     void setBufferSize(int bufferSize);
     std::unique_ptr<Effect> clone() const override;
 

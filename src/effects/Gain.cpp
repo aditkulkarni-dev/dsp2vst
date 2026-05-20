@@ -1,12 +1,12 @@
 #include "Gain.h"
-#include "../audio/AudioBuffer.h"
+#include "../audio/AudioBuffer_opt.h"
 #include <memory>
 
 Gain::Gain(float gainAmount) : gain(gainAmount) {}
 
-void Gain::process(AudioBuffer& buffer){
-    for (auto& sample : buffer.samples){
-        sample *= gain;
+void Gain::process(float* data, int numSamples){
+    for (int i{0}; i < numSamples; ++i){
+        data[i] *= gain;
     }
 }
 
