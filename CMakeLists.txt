@@ -6,6 +6,11 @@ project(audio-engine)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    message(STATUS "No build type specified. Defaulting to Release (-O3 optimizations).")
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+endif()
+
 # 1. Find libsndfile using PkgConfig (Standard for Linux/Pop!_OS)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(SNDFILE REQUIRED IMPORTED_TARGET sndfile)
@@ -45,6 +50,10 @@ target_link_libraries(AudioEngineLib PUBLIC PkgConfig::SNDFILE kissfft)
 # 3. Main executable
 add_executable(mainApp ./src/app/main_engine.cpp)
 target_link_libraries(mainApp PRIVATE AudioEngineLib)
+
+# Benchmarking
+add_executable(benchmarkApp ./src/app/benchmark_main.cpp)
+target_link_libraries(benchmarkApp PRIVATE AudioEngineLib)
 
 # 4. Optional tests (Ignored for now, but clean)
 option(BUILD_TESTING "Build unit tests" ON) 
