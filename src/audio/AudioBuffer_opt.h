@@ -2,7 +2,7 @@
 
 class AudioBuffer{
 public:
-    AudioBuffer(int numSamples, int numChannels):numSamples(numSamples), numChannels(numChannels)
+    AudioBuffer(int numSamples, int numChannels, int sampleRate):numSamples(numSamples), numChannels(numChannels), sampleRate(sampleRate)
     {
         channels = new float*[numChannels];
         for(int ch{0}; ch < numChannels; ch++){
@@ -33,9 +33,13 @@ public:
     float* getWritePtr(int channelNum){
         return channels[channelNum];
     }
+    int getNumChannels() const { return numChannels; }
+    int getNumSamples() const { return numSamples; }
+    int getSampleRate() const { return sampleRate; }
 
 private:
     float** channels = nullptr;
     int numSamples = 0;
     int numChannels = 0;
+    int sampleRate = 0;
 };

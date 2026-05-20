@@ -1,13 +1,12 @@
 #pragma once
 #include <string>
-#include "../audio/AudioBuffer.h"
+#include "../audio/AudioBuffer_opt.h"
+#include <vector>
 
 class AudioFileIO{
 
 public:
-    AudioBuffer readWav(const std::string& filePath);
+    std::unique_ptr<AudioBuffer> readWav(const std::string& filePath);
     void writeWav(const std::string& filePath, const AudioBuffer& buffer);
     
-
-
 };
