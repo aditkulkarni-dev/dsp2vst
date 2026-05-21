@@ -1,40 +1,92 @@
 #include "FDNReverb.h"
 #include <cmath>
+#include <algorithm>
+
+FDNReverb::FDNReverb(std::vector<int> k) : k(k), N(k.size()) {
+    delayLines.resize(N);
+    dampingFilters.resize(N);
+    
+    // PRE-ALLOCATE processing vectors to match size N
+    Y.resize(N, 0.0f);
+    d_out.resize(N, 0.0f);
+
+    for (int i = 0; i < N; i++) {
+        delayLines[i].setSize(k[i]);
+        dampingFilters[i].setCoefficient(0.5f);
+    }
+
+    // Generate the dynamic N x N matrix
+    generateHouseholderMatrix();
+
+    // Default target
+    setReverbTime(2.5f, 44100.0f);
+}
+
+void FDNReverb::generateHouseholderMatrix() {
+    // Resize the 2D vector to N x N
+    matrix.resize(N, std::vector<float>(N, 0.0f));
+    
+    // The Householder multiplier constant: 2 / N
+    float multiplier = 2.0f / static_cast<float>(N);
+    
+    for (int row = 0; row < N; ++row) {
+        for (int col = 0; col < N; ++col) {
+            if (row == col) {
+                // The diagonal gets (1 - 2/N)
+                matrix[row][col] = 1.0f - multiplier;
+            } else {
+                // Everywhere else gets (-2/N)
+                matrix[row][col] = -multiplier;
+            }
+        }
+    }
+}
+
+void FDNReverb::setReverbTime(float rt60InSeconds, float sampleRate) {
+    gains.resize(N);
+    for (int i = 0; i < N; ++i) {
+        float exponent = (-3.0f * static_cast<float>(k[i])) / (rt60InSeconds * sampleRate);
+        gains[i] = std::pow(10.0f, exponent);
+    }
+}
 
 void FDNReverb::process(float* data, int numSamples) {
-    // Standard c weights (input to delay lines) - assuming 1.0 for simplicity
     constexpr float c = 1.0f; 
-    constexpr float g = 0.8f;
+    
+    // Dynamic output scaler (e.g., 1/4 for 4 lines, 1/8 for 8 lines)
+    float outputScaler = 1.0f / static_cast<float>(N);
 
     for (int n = 0; n < numSamples; ++n) {
-        float x = data[n]; // Current input sample
+        float x = data[n]; 
         
-        // Stack-allocated arrays for this specific sample.
-        std::array<float, 4> Y = {0.0f, 0.0f, 0.0f, 0.0f};
-        std::array<float, 4> d_out;
+        // Reset the Y vector to zero for this sample's accumulation
+        std::fill(Y.begin(), Y.end(), 0.0f);
 
-        // Read the delayed signals: D(n-k)
-        for (int i = 0; i < 4; ++i) {
+        // Read the delayed signals
+        for (int i = 0; i < N; ++i) {
             float rawDelay = delayLines[i].read();
             d_out[i] = dampingFilters[i].process(rawDelay) * gains[i]; 
         }
 
         // Perform the Matrix Multiplication + Input addition
-        // Y = (matrix * d_out) + (c * x)
-        for (int row = 0; row < 4; ++row) {
-            for (int col = 0; col < 4; ++col) {
+        for (int row = 0; row < N; ++row) {
+            for (int col = 0; col < N; ++col) {
                 Y[row] += matrix[row][col] * d_out[col];
             }
-            Y[row] += c * x; // Adding the direct input injection
+            Y[row] += c * x; 
         }
 
-        // The Transform (Linear combination for the output)
-        float v = (Y[0] + Y[1] + Y[2] + Y[3]) * 0.25f;
+        // The Transform (Dynamic Linear Combination)
+        float v = 0.0f;
+        for (int i = 0; i < N; ++i) {
+            v += Y[i];
+        }
+        v *= outputScaler;
 
-        // Write Y back into the delay lines for the next feedback loop
-        for (int i = 0; i < 4; ++i) {
+        // Write Y back into the delay lines 
+        for (int i = 0; i < N; ++i) {
             delayLines[i].write(Y[i]);
-            delayLines[i].advance();   // Move the buffer pointers forward
+            delayLines[i].advance();   
         }
 
         // Output the sample
@@ -42,16 +94,6 @@ void FDNReverb::process(float* data, int numSamples) {
     }
 }
 
-void FDNReverb::setReverbTime(float rt60InSeconds, float sampleRate) {
-    gains.resize(k.size());
-    for (size_t i = 0; i < k.size(); ++i) {
-        // g_i = 10^(-3 * k_i / (RT60 * SR))
-        float exponent = (-3.0f * static_cast<float>(k[i])) / (rt60InSeconds * sampleRate);
-        gains[i] = std::pow(10.0f, exponent);
-    }
-}
-
-std::unique_ptr<Effect> FDNReverb::clone() const
-{
+std::unique_ptr<Effect> FDNReverb::clone() const {
     return std::make_unique<FDNReverb>(*this); 
 }
