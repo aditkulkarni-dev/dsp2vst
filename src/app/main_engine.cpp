@@ -4,7 +4,7 @@
 #include "effects/FDNReverb.h"
 
 int main() {
-    AudioEngine engine("input.wav", "output.wav");
+    AudioEngine engine("input.wav", "output.wav", 1024);
 
     // Add ur effects here
     engine.addEffect(std::make_unique<Gain>(0.7f));

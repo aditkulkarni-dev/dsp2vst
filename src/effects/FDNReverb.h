@@ -1,4 +1,5 @@
 #include "Effect.h"
+#include "../dsp/LowPassFilter.h"
 #include <iostream>
 #include <array>
 #include "../dsp/CircularBuffer.h"
@@ -11,10 +12,15 @@ class FDNReverb : public Effect{
     
     {
         delayLines.resize(k.size());
+        dampingFilters.resize(k.size());
         for(int i{0}; i < k.size(); i++){
             delayLines[i].setSize(k[i]);
+            dampingFilters[i].setCoefficient(0.5f);
         }
+
+        setReverbTime(2.5f, 44100.0f);
     }
+    
 
     // data can be indexed like an array.
 
@@ -37,11 +43,14 @@ class FDNReverb : public Effect{
     */
 
     void process(float* data, int numSamples);
+    void setReverbTime(float rt60InSeconds, float sampleRate);
     std::unique_ptr<Effect> clone() const;
 
     private:
     std::vector<int> k;
     std::vector<CircularBuffer> delayLines;
+    std::vector<LowPassFilter> dampingFilters;
+    std::vector<float> gains;
 
     // As of now, we hard code it to 4. We will change the part below later on.
 

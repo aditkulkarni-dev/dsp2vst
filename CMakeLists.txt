@@ -37,6 +37,7 @@ add_library(AudioEngineLib STATIC
     ./src/effects/FDNReverb.cpp
     ./src/effects/EffectChain.cpp
     ./src/audio/AudioBuffer_opt.h
+    ./src/dsp/LowPassFilter.cpp
 )
 
 # Tell the library where its own headers AND kissfft headers are
