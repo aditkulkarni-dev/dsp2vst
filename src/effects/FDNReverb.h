@@ -3,10 +3,11 @@
 #include <array>
 #include "../dsp/CircularBuffer.h"
 #include <vector>
+#include <memory>
 
-class FDNReverb : Effect{
+class FDNReverb : public Effect{
     public:
-    FDNReverb(std::vector<float> k) : k(k)
+    FDNReverb(std::vector<int> k) : k(k)
     
     {
         delayLines.resize(k.size());
@@ -39,11 +40,11 @@ class FDNReverb : Effect{
     std::unique_ptr<Effect> clone() const;
 
     private:
-    std::vector<float> k;
+    std::vector<int> k;
     std::vector<CircularBuffer> delayLines;
 
     // As of now, we hard code it to 4. We will change the part below later on.
-    
+
     static constexpr float s = 0.5f;
 
     std::array<std::array<float, 4>, 4> matrix = {{

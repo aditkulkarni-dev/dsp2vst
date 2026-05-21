@@ -34,6 +34,7 @@ add_library(AudioEngineLib STATIC
     ./src/dsp/CircularBuffer.cpp
     ./src/io/AudioFileIO.cpp
     ./src/effects/Gain.cpp
+    ./src/effects/FDNReverb.cpp
     ./src/effects/EffectChain.cpp
     ./src/audio/AudioBuffer_opt.h
 )

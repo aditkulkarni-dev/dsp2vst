@@ -55,22 +55,6 @@ int main() {
 
         // 2. Instantiate and configure the engine
         AudioEngine engine(inputPath, outputPath);
-        engine.addEffect(std::make_unique<Gain>(0.7f));
-        engine.addEffect(std::make_unique<Gain>(0.7f));
-        engine.addEffect(std::make_unique<Gain>(0.7f));
-        engine.addEffect(std::make_unique<Gain>(0.7f));
-        engine.addEffect(std::make_unique<Gain>(0.7f));
-        engine.addEffect(std::make_unique<Gain>(0.7f));
-        engine.addEffect(std::make_unique<Gain>(0.7f));
-        engine.addEffect(std::make_unique<ffDelay>(22000, 1.0f, sampleRate));
-        engine.addEffect(std::make_unique<ffDelay>(22000, 1.0f, sampleRate));
-        engine.addEffect(std::make_unique<ffDelay>(22000, 1.0f, sampleRate));
-        engine.addEffect(std::make_unique<ffDelay>(22000, 1.0f, sampleRate));
-        engine.addEffect(std::make_unique<ffDelay>(22000, 1.0f, sampleRate));
-        engine.addEffect(std::make_unique<ffDelay>(22000, 1.0f, sampleRate));
-        engine.addEffect(std::make_unique<ffDelay>(22000, 1.0f, sampleRate));
-        engine.addEffect(std::make_unique<ffDelay>(22000, 1.0f, sampleRate));
-        engine.addEffect(std::make_unique<ffDelay>(22000, 1.0f, sampleRate));
         engine.addEffect(std::make_unique<ffDelay>(22000, 1.0f, sampleRate));
 
         // 3. Profile the engine run
