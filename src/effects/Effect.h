@@ -10,4 +10,5 @@ public:
     virtual void process(float* data, int numSamples) = 0;
 
     virtual std::unique_ptr<Effect> clone() const = 0;
+    
 };

@@ -21,3 +21,8 @@ float Gain::getGain() const{
 std::unique_ptr<Effect> Gain::clone() const{
     return std::make_unique<Gain>(*this); 
 }
+
+inline const std::vector<AudioParameter<Gain>> Gain::getAudioParameters()
+{
+    return {{"gain", "gain", 0.0f, 1.0f, 0.5f, &Gain::setGain}};
+}

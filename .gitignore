@@ -20,3 +20,6 @@ vcpkg/
 
 # cache
 .cache/
+
+# juce code
+./src/juce/
