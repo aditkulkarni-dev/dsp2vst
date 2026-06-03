@@ -22,4 +22,4 @@ vcpkg/
 .cache/
 
 # juce code
-./src/juce/
+./src/juce
