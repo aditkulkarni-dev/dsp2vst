@@ -6,7 +6,9 @@ struct AudioParameter{
     std::string id;
     float min;
     float max;
+    float step;
     float default_value;
+    
     void (Effect::*setParameter)(float); 
 };
 

@@ -10,10 +10,12 @@
 
 #include <JuceHeader.h>
 
+#include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <vector>
 
+#pragma once // Good practice to prevent double inclusions
 
 // ===== BEGIN C:\Users\Aditya Kulkarni\audio-engine\audio-engine\src\effects\Effect.h =====
 
@@ -82,26 +84,28 @@ public:
 // ===== END C:\Users\Aditya Kulkarni\audio-engine\audio-engine\src\effects\Effect.h =====
 
 
-// ===== BEGIN C:\Users\Aditya Kulkarni\audio-engine\audio-engine\src\audio\AudioParameter.h =====
+// ===== BEGIN C:\Users\Aditya Kulkarni\audio-engine\audio-engine\src\dsp\LowPassFilter.h =====
 
 
+class LowPassFilter {
+public:
+    LowPassFilter() = default;
 
-template <typename Effect>
-struct AudioParameter{
-    std::string name;
-    std::string id;
-    float min;
-    float max;
-    float default_value;
-    void (Effect::*setParameter)(float); 
+    // Resets the filter's memory
+    void reset();
+
+    // Sets the coefficient directly (0.0 to 1.0)
+    void setCoefficient(float c);
+
+    // Processes a single sample
+    float process(float input);
+
+private:
+    float c{1.0f};  // Cutoff coefficient
+    float z1{0.0f}; // One-sample memory (z^-1)
 };
 
-/*
-    void (effect::*setParameter)(float) : pointer to a void function called setParameter which is 
-    a member function of effect class, and takes in a float value which sets the parameter's value.
-*/
-
-// ===== END C:\Users\Aditya Kulkarni\audio-engine\audio-engine\src\audio\AudioParameter.h =====
+// ===== END C:\Users\Aditya Kulkarni\audio-engine\audio-engine\src\dsp\LowPassFilter.h =====
 
 
 // ===== BEGIN C:\Users\Aditya Kulkarni\audio-engine\audio-engine\src\dsp\CircularBuffer.h =====
@@ -135,158 +139,45 @@ private:
     int size{0}; // Cached size for faster wrap-around checking
 };
 
-// ===== BEGIN C:\Users\Aditya Kulkarni\audio-engine\audio-engine\src\dsp\CircularBuffer.cpp =====
-
-
-void CircularBuffer::reset() {
-    std::fill(buffer.begin(), buffer.end(), 0.0f);
-    writeIdx = 0;
-}
-
-void CircularBuffer::setSize(int newSize) {
-    if (newSize <= 0) {
-        throw std::invalid_argument("Buffer size must be greater than 0");
-    }
-    
-    size = newSize;
-    buffer.resize(size);
-    
-    // reset() handles clearing the memory to 0.0f and resetting the index
-    reset(); 
-}
-
-int CircularBuffer::getSize() const {
-    return size;
-}
-
-int CircularBuffer::getWriteIdx() const {
-    return writeIdx;
-}
-
-void CircularBuffer::write(float sample) {
-    // Just overwrite the current index. Advance is handled separately.
-    buffer[writeIdx] = sample;
-}
-
-void CircularBuffer::advance() {
-    writeIdx++;
-    
-    // Use an 'if' branch instead of '%' for massive DSP performance gains
-    if (writeIdx >= size) {
-        writeIdx = 0;
-    }
-}
-
-float CircularBuffer::read() const {
-    // Reading without a delay parameter automatically grabs the oldest sample
-    return buffer[writeIdx];
-}
-
-float CircularBuffer::read(int delay) const {
-    // Allow delay to be 0 (reading the current writeIdx right before writing)
-    if (delay < 0 || delay > size) {
-        throw std::invalid_argument("Invalid delay: must be between 0 and buffer size");
-    }
-
-    int idxToRead = writeIdx - delay;
-    
-    // Wrap around backwards if we drop below 0
-    if (idxToRead < 0) {
-        idxToRead += size; 
-    }
-    
-    return buffer[idxToRead];
-}
-
-// ===== END C:\Users\Aditya Kulkarni\audio-engine\audio-engine\src\dsp\CircularBuffer.cpp =====
-
-
 // ===== END C:\Users\Aditya Kulkarni\audio-engine\audio-engine\src\dsp\CircularBuffer.h =====
 
 
-class ffDelay : public Effect{
+class FDNReverb : public Effect {
 public:
-    ffDelay() = default;
-    ffDelay(int delay, float mix, int bufferSize=256) : delay(delay), mix(mix){
-        buffer.setSize(bufferSize);
-    }
-    void process(float* data, int numSamples) override;
-    void setBufferSize(int bufferSize);
+    // Constructor now takes 'k' and dynamically scales everything
+    FDNReverb(std::vector<int> k);
+
+    void process(float* data, int numSamples) override; // assuming it overrides from Effect
+    void setReverbTime(float rt60InSeconds, float sampleRate);
     std::unique_ptr<Effect> clone() const override;
-    std::vector<AudioParameter<ffDelay>> static const getAudioParameters();
-    void setDelay(float newDelay);
-    void setMix(float newMix);
 
 private:
-    int delay{0};
-    float mix{0.3f};
-    CircularBuffer buffer;
-    inline static const std::vector<AudioParameter<ffDelay>>
-     params = {{"delay", "delay", 0, 256, 128, &ffDelay::setDelay}, 
-                {"mix", "mix", 0.0f, 1.0f, 0.5f, &ffDelay::setMix} };
+    // Helper function to build the dynamic Householder matrix
+    void generateHouseholderMatrix();
 
+    int N; // The dynamic size of our FDN (number of delay lines)
+    std::vector<int> k;
+    std::vector<CircularBuffer> delayLines;
+    std::vector<LowPassFilter> dampingFilters;
+    std::vector<float> gains;
+
+    // A dynamically sized 2D matrix
+    std::vector<std::vector<float>> matrix;
+
+    // Pre-allocated memory for the audio thread
+    std::vector<float> Y;
+    std::vector<float> d_out;
 };
-
-// ===== BEGIN C:\Users\Aditya Kulkarni\audio-engine\audio-engine\src\effects\ffDelay.cpp =====
-
-
-void ffDelay::setBufferSize(int bufferSize){
-    buffer.setSize(bufferSize);
-}
-
-void ffDelay::process(float* data, int numSamples){
-    
-    for (int i{0}; i < numSamples; ++i){
-        float input = data[i];
-        
-        //Read the old sample from 'delay' samples ago
-        float delayed = buffer.read(delay);
- 
-        //Mix the dry input with the wet delayed signal
-        float output = input + mix * delayed;
-        
-        //Store the current input sample into the buffer
-        buffer.write(input);
-        
-        //Update the audio block array
-        data[i] = output;
-        
-        //Step the buffer pointer forward for the next iteration!
-        buffer.advance(); 
-    }
-}
-
-std::unique_ptr<Effect> ffDelay::clone() const{
-    return std::make_unique<ffDelay>(*this); 
-}
-
-std::vector<AudioParameter<ffDelay>> const ffDelay::getAudioParameters()
-{
-    return params;
-}
-
-void ffDelay::setDelay(float newDelay)
-{
-    delay = static_cast<int>(newDelay);
-}
-
-void ffDelay::setMix(float newMix)
-{
-    mix = newMix;
-}
-
-// ===== END C:\Users\Aditya Kulkarni\audio-engine\audio-engine\src\effects\ffDelay.cpp =====
-
 
 //==============================================================================
 /**
 */
-class ffDelayAudioProcessor  : public juce::AudioProcessor
+class FDNReverbAudioProcessor  : public juce::AudioProcessor
 {
 public:
     //==============================================================================
-    ffDelayAudioProcessor();
-    ~ffDelayAudioProcessor() override;
+    FDNReverbAudioProcessor();
+    ~FDNReverbAudioProcessor() override;
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -320,15 +211,8 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-    juce::AudioProcessorValueTreeState apvts;
-
-    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
-
-    ffDelay userEffect;
-
 
 private:
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ffDelayAudioProcessor)
-    
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FDNReverbAudioProcessor)
 };

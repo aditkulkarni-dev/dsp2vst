@@ -10,7 +10,7 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-ffDelayAudioProcessor::ffDelayAudioProcessor()
+FDNReverbAudioProcessor::FDNReverbAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
@@ -19,23 +19,22 @@ ffDelayAudioProcessor::ffDelayAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       ),
-                       apvts(*this, nullptr, "PARAMETERS", createParameterLayout())
+                       )
 #endif
 {
 }
 
-ffDelayAudioProcessor::~ffDelayAudioProcessor()
+FDNReverbAudioProcessor::~FDNReverbAudioProcessor()
 {
 }
 
 //==============================================================================
-const juce::String ffDelayAudioProcessor::getName() const
+const juce::String FDNReverbAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
-bool ffDelayAudioProcessor::acceptsMidi() const
+bool FDNReverbAudioProcessor::acceptsMidi() const
 {
    #if JucePlugin_WantsMidiInput
     return true;
@@ -44,7 +43,7 @@ bool ffDelayAudioProcessor::acceptsMidi() const
    #endif
 }
 
-bool ffDelayAudioProcessor::producesMidi() const
+bool FDNReverbAudioProcessor::producesMidi() const
 {
    #if JucePlugin_ProducesMidiOutput
     return true;
@@ -53,7 +52,7 @@ bool ffDelayAudioProcessor::producesMidi() const
    #endif
 }
 
-bool ffDelayAudioProcessor::isMidiEffect() const
+bool FDNReverbAudioProcessor::isMidiEffect() const
 {
    #if JucePlugin_IsMidiEffect
     return true;
@@ -62,50 +61,50 @@ bool ffDelayAudioProcessor::isMidiEffect() const
    #endif
 }
 
-double ffDelayAudioProcessor::getTailLengthSeconds() const
+double FDNReverbAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int ffDelayAudioProcessor::getNumPrograms()
+int FDNReverbAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
                 // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int ffDelayAudioProcessor::getCurrentProgram()
+int FDNReverbAudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void ffDelayAudioProcessor::setCurrentProgram (int index)
+void FDNReverbAudioProcessor::setCurrentProgram (int index)
 {
 }
 
-const juce::String ffDelayAudioProcessor::getProgramName (int index)
+const juce::String FDNReverbAudioProcessor::getProgramName (int index)
 {
     return {};
 }
 
-void ffDelayAudioProcessor::changeProgramName (int index, const juce::String& newName)
+void FDNReverbAudioProcessor::changeProgramName (int index, const juce::String& newName)
 {
 }
 
 //==============================================================================
-void ffDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void FDNReverbAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
 }
 
-void ffDelayAudioProcessor::releaseResources()
+void FDNReverbAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool ffDelayAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool FDNReverbAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
   #if JucePlugin_IsMidiEffect
     juce::ignoreUnused (layouts);
@@ -130,13 +129,13 @@ bool ffDelayAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) 
 }
 #endif
 
-void ffDelayAudioProcessor::function() {
+void FDNReverbAudioProcessor::function() {
 	 float gain = apvts.getRawParameterValue("gain");
 
 }
 
 
-void ffDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void FDNReverbAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
@@ -167,52 +166,33 @@ void ffDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
 }
     
 //==============================================================================
-bool ffDelayAudioProcessor::hasEditor() const
+bool FDNReverbAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* ffDelayAudioProcessor::createEditor()
+juce::AudioProcessorEditor* FDNReverbAudioProcessor::createEditor()
 {
-    return new ffDelayAudioProcessorEditor (*this);
+    return new FDNReverbAudioProcessorEditor (*this);
 }
 
 //==============================================================================
-void ffDelayAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void FDNReverbAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
 }
 
-void ffDelayAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void FDNReverbAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
-}
-
-juce::AudioProcessorValueTreeState::ParameterLayout ffDelayAudioProcessor::createParameterLayout()
-{
-    juce::AudioProcessorValueTreeState::ParameterLayout layout{};
-    auto audioParams = ffDelay::getAudioParameters();
-    
-    for (auto param : audioParams){
-        layout.add(
-            std::make_unique<juce::AudioParameterFloat>(
-                juce::ParameterID(param.name, 1),
-                param.name,
-                juce::NormalisableRange<float>(param.min, param.max, 0.01),
-                param.default_value
-            );
-        )
-    }
-    
-    return layout;
 }
 
 //==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new ffDelayAudioProcessor();
+    return new FDNReverbAudioProcessor();
 }

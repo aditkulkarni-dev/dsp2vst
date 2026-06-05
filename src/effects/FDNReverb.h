@@ -32,3 +32,4 @@ private:
     std::vector<float> Y;
     std::vector<float> d_out;
 };
+

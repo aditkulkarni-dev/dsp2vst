@@ -1,5 +1,5 @@
 #include "ffDelay.h"
-#include "audio/AudioBuffer_opt.h"
+#include "../audio/AudioBuffer_opt.h"
 
 void ffDelay::setBufferSize(int bufferSize){
     buffer.setSize(bufferSize);

@@ -19,7 +19,8 @@ NewProjectAudioProcessor::NewProjectAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       )
+                       ),
+                       apvts(*this, nullptr, "PARAMETERS", createParameterLayout())
 #endif
 {
 }
@@ -188,6 +189,25 @@ void NewProjectAudioProcessor::setStateInformation (const void* data, int sizeIn
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+}
+
+juce::AudioProcessorValueTreeState::ParameterLayout NewProjectAudioProcessor::createParameterLayout()
+{
+    juce::AudioProcessorValueTreeState::ParameterLayout layout{};
+    auto audioParams = {{EFFECT_CLASS_NAME}}::getAudioParameters();
+
+    for (auto param : audioParams){
+        layout.add(
+            std::make_unique<juce::AudioParameterFloat>(
+                juce::ParameterID(param.name, 1),
+                param.name,
+                juce::NormalisableRange<float>(param.min, param.max, param.step),
+                param.default_value
+            )
+        );
+    }
+    
+    return layout;
 }
 
 //==============================================================================
