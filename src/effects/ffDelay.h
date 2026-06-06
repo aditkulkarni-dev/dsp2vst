@@ -3,11 +3,11 @@
 #include "../audio/AudioParameter.h"
 #include "../dsp/CircularBuffer.h"
 #include <memory>
+#include <atomic>
 
 class ffDelay : public Effect{
 public:
-    ffDelay() = default;
-    ffDelay(int delay, float mix, int bufferSize=256) : delay(delay), mix(mix){
+    ffDelay(int delay=22050, float mix = 0.3f, int bufferSize=44100) : delay(static_cast<float>(delay)), mix(mix){
         buffer.setSize(bufferSize);
     }
     void process(float* data, int numSamples) override;
@@ -18,7 +18,7 @@ public:
     void setMix(float newMix);
 
 private:
-    int delay{0};
+    float delay{0};
     float mix{0.3f};
     CircularBuffer buffer;
     inline static const std::vector<AudioParameter<ffDelay>>

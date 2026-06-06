@@ -23,6 +23,9 @@ ffDelayAudioProcessor::ffDelayAudioProcessor()
                        apvts(*this, nullptr, "PARAMETERS", createParameterLayout())
 #endif
 {
+    for (auto& param : audioParams){
+        paramPtrs.push_back(apvts.getRawParameterValue(param.name));
+    }
 }
 
 ffDelayAudioProcessor::~ffDelayAudioProcessor()
@@ -96,6 +99,10 @@ void ffDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+    userEffects.clear();
+    for (int i = 0; i < getTotalNumInputChannels(); ++i) {
+        userEffects.push_back(ffDelay());
+    }
 }
 
 void ffDelayAudioProcessor::releaseResources()
@@ -130,11 +137,6 @@ bool ffDelayAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) 
 }
 #endif
 
-void ffDelayAudioProcessor::function() {
-	 float gain = apvts.getRawParameterValue("gain");
-
-}
-
 
 void ffDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
@@ -142,7 +144,6 @@ void ffDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
     
-    float gain = apvts.getRawParameterValue("gain");
     // In case we have more outputs than inputs, this code clears any output
     // channels that didn't contain input data, (because these aren't
     // guaranteed to be empty - they may contain garbage).
@@ -158,10 +159,22 @@ void ffDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
+    
+    // internal setting of params per parameter per effect
+    for(size_t i{0}; i < audioParams.size(); ++i){
+        float currentVal = paramPtrs[i]->load();
+        
+        // Update all channel effects
+        for (auto& effect : userEffects) {
+            (effect.*(audioParams[i].setParameter))(currentVal); 
+        }
+    }
+
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
+    {   
         auto* channelData = buffer.getWritePointer (channel);
 
+        userEffects[channel].process(channelData, buffer.getNumSamples());
         // ..do something to the data...
     }
 }
@@ -194,17 +207,17 @@ void ffDelayAudioProcessor::setStateInformation (const void* data, int sizeInByt
 juce::AudioProcessorValueTreeState::ParameterLayout ffDelayAudioProcessor::createParameterLayout()
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout{};
-    auto audioParams = ffDelay::getAudioParameters();
-    
-    for (auto param : audioParams){
+    audioParams = ffDelay::getAudioParameters();
+
+    for (const auto& param : audioParams){
         layout.add(
             std::make_unique<juce::AudioParameterFloat>(
                 juce::ParameterID(param.name, 1),
                 param.name,
-                juce::NormalisableRange<float>(param.min, param.max, 0.01),
+                juce::NormalisableRange<float>(param.min, param.max, param.step),
                 param.default_value
-            );
-        )
+            )
+        );
     }
     
     return layout;

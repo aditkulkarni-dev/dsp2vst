@@ -8,7 +8,6 @@ struct AudioParameter{
     float max;
     float step;
     float default_value;
-    
     void (Effect::*setParameter)(float); 
 };
 
