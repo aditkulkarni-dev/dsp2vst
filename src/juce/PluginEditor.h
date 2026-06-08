@@ -24,6 +24,20 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
+    // {{EFFECT_SLIDERS}}
+    // {{EFFECT_LABELS}}
+    // {{SLIDER_ATTACHMENTS}}
+
+    std::vector<std::unique_ptr<juce::Slider>> sliders;
+    std::vector<std::unique_ptr<juce::Label>> labels;
+    std::vector<std::unique_ptr<SliderAttachment>> attachments;
+    
+
+    
+
+    using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
+
+
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
