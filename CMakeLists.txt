@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.20)
-
-project(audio-engine)
+cmake_minimum_required(VERSION 3.22)  # JUCE requires 3.22 minimum
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
+project(audio-engine VERSION 1.0.0)
 
 # =========================
 # C++ Standard
@@ -8,8 +8,6 @@ project(audio-engine)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# Export compile_commands.json for clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # =========================
@@ -22,32 +20,24 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 # =========================
-# Platform-Specific Dependencies
+# JUCE
+# =========================
+
+add_subdirectory(libs/JUCE)
+
+# =========================
+# Platform-Specific Dependencies (sndfile)
 # =========================
 
 if(WIN32)
-
-    # vcpkg-installed libsndfile
     find_package(SndFile CONFIG REQUIRED)
-
     add_library(SndFileTarget INTERFACE)
-    target_link_libraries(SndFileTarget
-        INTERFACE
-        SndFile::sndfile
-    )
-
+    target_link_libraries(SndFileTarget INTERFACE SndFile::sndfile)
 else()
-
-    # Linux / Unix systems
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(SNDFILE REQUIRED IMPORTED_TARGET sndfile)
-
     add_library(SndFileTarget INTERFACE)
-    target_link_libraries(SndFileTarget
-        INTERFACE
-        PkgConfig::SNDFILE
-    )
-
+    target_link_libraries(SndFileTarget INTERFACE PkgConfig::SNDFILE)
 endif()
 
 # =========================
@@ -95,31 +85,60 @@ target_link_libraries(AudioEngineLib
         kissfft
 )
 
-# =========================
-# Main Application
-# =========================
+juce_add_plugin(DelayPlugin
+    COMPANY_NAME "ADITYA"
+    IS_SYNTH FALSE
+    NEEDS_MIDI_INPUT FALSE
+    NEEDS_MIDI_OUTPUT FALSE
+    IS_MIDI_EFFECT FALSE
+    EDITOR_WANTS_KEYBOARD_FOCUS FALSE
+    FORMATS VST3 Standalone
+    PRODUCT_NAME "DelayPlugin"
 
-add_executable(mainApp
-    src/app/main_engine.cpp
 )
 
-target_link_libraries(mainApp
-    PRIVATE
-        AudioEngineLib
+target_sources(
+    DelayPlugin PRIVATE
+    src/FfDelay/PluginProcessor.cpp
+    src/FfDelay/PluginProcessor.h
+    src/FfDelay/PluginEditor.h
+    src/FfDelay/PluginEditor.cpp
 )
+
+add_library(
+    DelayLib STATIC
+    src/effects/FfDelay.cpp
+    src/dsp/CircularBuffer.cpp  
+    src/
+)
+
+target_link_libraries(
+    DelayPlugin PRIVATE
+    DelayLib
+
+    juce::juce_audio_utils
+    juce::juce_audio_processors
+    juce_recommended_config_flags
+    juce_recommended_lto_flags
+    juce_recommended_warning_flags
+)
+target_compile_definitions(DelayPlugin
+    PUBLIC
+        JUCE_WEB_BROWSER=0
+        JUCE_USE_CURL=0
+        JUCE_VST3_CAN_REPLACE_VST2=0 
+)
+juce_generate_juce_header(DelayPlugin)
 
 # =========================
-# Benchmark Application
+# Main / Benchmark Applications
 # =========================
 
-add_executable(benchmarkApp
-    src/app/benchmark_main.cpp
-)
+add_executable(mainApp src/app/main_engine.cpp)
+target_link_libraries(mainApp PRIVATE AudioEngineLib)
 
-target_link_libraries(benchmarkApp
-    PRIVATE
-        AudioEngineLib
-)
+add_executable(benchmarkApp src/app/benchmark_main.cpp)
+target_link_libraries(benchmarkApp PRIVATE AudioEngineLib)
 
 # =========================
 # Testing
@@ -139,7 +158,6 @@ if(BUILD_TESTING)
     )
 
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
     FetchContent_MakeAvailable(googletest)
 
     add_executable(AudioTests
@@ -159,3 +177,12 @@ if(BUILD_TESTING)
     gtest_discover_tests(AudioTests)
 
 endif()
+
+# =========================
+# Generated JUCE Plugins
+# =========================
+
+# Translator drops new plugin folders here — just add them as subdirectories.
+# Each plugin's own CMakeLists.txt handles juce_add_plugin and target_link_libraries.
+
+# add_subdirectory(generated/MyDelayPlugin)

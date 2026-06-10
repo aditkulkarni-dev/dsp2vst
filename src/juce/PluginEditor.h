@@ -27,7 +27,7 @@ public:
     // {{EFFECT_SLIDERS}}
     // {{EFFECT_LABELS}}
     // {{SLIDER_ATTACHMENTS}}
-
+    using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
     std::vector<std::unique_ptr<juce::Slider>> sliders;
     std::vector<std::unique_ptr<juce::Label>> labels;
     std::vector<std::unique_ptr<SliderAttachment>> attachments;
@@ -35,7 +35,7 @@ public:
 
     
 
-    using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
+    
 
 
 private:

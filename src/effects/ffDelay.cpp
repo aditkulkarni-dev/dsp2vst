@@ -1,11 +1,10 @@
-#include "ffDelay.h"
-#include "../audio/AudioBuffer_opt.h"
+#include "FfDelay.h"
 
-void ffDelay::setBufferSize(int bufferSize){
+void FfDelay::setBufferSize(int bufferSize){
     buffer.setSize(bufferSize);
 }
 
-void ffDelay::process(float* data, int numSamples){
+void FfDelay::process(float* data, int numSamples){
     
     for (int i{0}; i < numSamples; ++i){
         float input = data[i];
@@ -27,21 +26,21 @@ void ffDelay::process(float* data, int numSamples){
     }
 }
 
-std::unique_ptr<Effect> ffDelay::clone() const{
-    return std::make_unique<ffDelay>(*this); 
+std::unique_ptr<Effect> FfDelay::clone() const{
+    return std::make_unique<FfDelay>(*this); 
 }
 
-std::vector<AudioParameter<ffDelay>> const ffDelay::getAudioParameters()
+std::vector<AudioParameter<FfDelay>> const FfDelay::getAudioParameters()
 {
     return params;
 }
 
-void ffDelay::setDelay(float newDelay)
+void FfDelay::setDelay(float newDelay)
 {
     delay = static_cast<int>(newDelay);
 }
 
-void ffDelay::setMix(float newMix)
+void FfDelay::setMix(float newMix)
 {
     mix = newMix;
 }

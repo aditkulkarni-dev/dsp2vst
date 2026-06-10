@@ -10,7 +10,7 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-ffDelayAudioProcessor::ffDelayAudioProcessor()
+FfDelayAudioProcessor::FfDelayAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
@@ -28,17 +28,17 @@ ffDelayAudioProcessor::ffDelayAudioProcessor()
     }
 }
 
-ffDelayAudioProcessor::~ffDelayAudioProcessor()
+FfDelayAudioProcessor::~FfDelayAudioProcessor()
 {
 }
 
 //==============================================================================
-const juce::String ffDelayAudioProcessor::getName() const
+const juce::String FfDelayAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
-bool ffDelayAudioProcessor::acceptsMidi() const
+bool FfDelayAudioProcessor::acceptsMidi() const
 {
    #if JucePlugin_WantsMidiInput
     return true;
@@ -47,7 +47,7 @@ bool ffDelayAudioProcessor::acceptsMidi() const
    #endif
 }
 
-bool ffDelayAudioProcessor::producesMidi() const
+bool FfDelayAudioProcessor::producesMidi() const
 {
    #if JucePlugin_ProducesMidiOutput
     return true;
@@ -56,7 +56,7 @@ bool ffDelayAudioProcessor::producesMidi() const
    #endif
 }
 
-bool ffDelayAudioProcessor::isMidiEffect() const
+bool FfDelayAudioProcessor::isMidiEffect() const
 {
    #if JucePlugin_IsMidiEffect
     return true;
@@ -65,54 +65,54 @@ bool ffDelayAudioProcessor::isMidiEffect() const
    #endif
 }
 
-double ffDelayAudioProcessor::getTailLengthSeconds() const
+double FfDelayAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int ffDelayAudioProcessor::getNumPrograms()
+int FfDelayAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
                 // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int ffDelayAudioProcessor::getCurrentProgram()
+int FfDelayAudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void ffDelayAudioProcessor::setCurrentProgram (int index)
+void FfDelayAudioProcessor::setCurrentProgram (int index)
 {
 }
 
-const juce::String ffDelayAudioProcessor::getProgramName (int index)
+const juce::String FfDelayAudioProcessor::getProgramName (int index)
 {
     return {};
 }
 
-void ffDelayAudioProcessor::changeProgramName (int index, const juce::String& newName)
+void FfDelayAudioProcessor::changeProgramName (int index, const juce::String& newName)
 {
 }
 
 //==============================================================================
-void ffDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void FfDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     userEffects.clear();
     for (int i = 0; i < getTotalNumInputChannels(); ++i) {
-        userEffects.push_back(ffDelay());
+        userEffects.push_back(FfDelay());
     }
 }
 
-void ffDelayAudioProcessor::releaseResources()
+void FfDelayAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool ffDelayAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool FfDelayAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
   #if JucePlugin_IsMidiEffect
     juce::ignoreUnused (layouts);
@@ -138,7 +138,7 @@ bool ffDelayAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) 
 #endif
 
 
-void ffDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void FfDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
@@ -180,34 +180,34 @@ void ffDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
 }
     
 //==============================================================================
-bool ffDelayAudioProcessor::hasEditor() const
+bool FfDelayAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* ffDelayAudioProcessor::createEditor()
+juce::AudioProcessorEditor* FfDelayAudioProcessor::createEditor()
 {
-    return new ffDelayAudioProcessorEditor (*this);
+    return new FfDelayAudioProcessorEditor (*this);
 }
 
 //==============================================================================
-void ffDelayAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void FfDelayAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
 }
 
-void ffDelayAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void FfDelayAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
 }
 
-juce::AudioProcessorValueTreeState::ParameterLayout ffDelayAudioProcessor::createParameterLayout()
+juce::AudioProcessorValueTreeState::ParameterLayout FfDelayAudioProcessor::createParameterLayout()
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout{};
-    audioParams = ffDelay::getAudioParameters();
+    audioParams = FfDelay::getAudioParameters();
 
     for (const auto& param : audioParams){
         layout.add(
@@ -227,5 +227,5 @@ juce::AudioProcessorValueTreeState::ParameterLayout ffDelayAudioProcessor::creat
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new ffDelayAudioProcessor();
+    return new FfDelayAudioProcessor();
 }

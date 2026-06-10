@@ -18,12 +18,12 @@ NewProjectAudioProcessorEditor::NewProjectAudioProcessorEditor (NewProjectAudioP
     
 
     const int numParams = audioProcessor.audioParams.size();
-    setSize (400, 300); // we can use the number of parameters we have to determine the size
+    
 
     sliders.reserve(numParams);
     labels.reserve(numParams);
     attachments.reserve(numParams);
-
+ 
     for (int i{0}; i < audioProcessor.audioParams.size(); ++i){
         // this can be customized later by adding more functionality to each audio parameter's description itself
         // we are essentially assuming that every parameter requires a slider, and has a label, and the value is float for simplicity
@@ -53,6 +53,7 @@ NewProjectAudioProcessorEditor::NewProjectAudioProcessorEditor (NewProjectAudioP
         labels.push_back(std::move(label));
         attachments.push_back(std::move(attachment));
     }
+    setSize (400, 300); // we can use the number of parameters we have to determine the size
 }
 
 NewProjectAudioProcessorEditor::~NewProjectAudioProcessorEditor()
@@ -67,7 +68,6 @@ void NewProjectAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white);
     g.setFont (juce::FontOptions (15.0f));
-    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
 }
 
 void NewProjectAudioProcessorEditor::resized()
@@ -81,11 +81,11 @@ void NewProjectAudioProcessorEditor::resized()
     const int cols = std::ceil (std::sqrt (numParams));
     const int rows = std::ceil ( static_cast<float>(numParams) / cols);
     const int cellWidth = getWidth() / cols;
-    const int cellHeight = getHeight() / cols;
+    const int cellHeight = getHeight() / rows;
 
     for (int i{0}; i < numParams; ++i){
         const int currentCol = i % cols;
-        const int currentRow = i % rows;
+        const int currentRow = i / cols;
 
         juce::Rectangle<int> cellBounds (currentCol * cellWidth, currentRow * cellHeight, cellWidth, cellHeight);
         cellBounds.reduce(5,5);

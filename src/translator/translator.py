@@ -85,15 +85,6 @@ def generate_juce_project(effect_header_path, template_dir, placeholder="NewProj
         print(f"Detected Effect Class Name: {effect_class_name}")
 
         parent_dir = os.path.dirname(os.path.abspath(template_dir))
-        
-        # Grab the effect code and verify it's not empty
-        effect_code, includes = include_user_defined_libraries(effect_header_path)
-        print(effect_code)
-        include_block = "\n".join(sorted(includes))
-        print(f"Extracted {len(effect_code)} characters of effect code.")
-        
-        if len(effect_code) == 0:
-            print("Warning: The extracted effect code is completely empty. Check your header file.")
 
         output_dir = os.path.join(parent_dir, effect_class_name)
         if not os.path.exists(output_dir):
@@ -131,12 +122,12 @@ def generate_juce_project(effect_header_path, template_dir, placeholder="NewProj
                 if "{{EFFECT_HEADER}}" not in translated_content:
                     print(f"\n[!] ERROR: Could not find '{{{{EFFECT_HEADER}}}}' exact match in {filename}!")
                 else:
-                    translated_content = translated_content.replace("{{SYSTEM_INCLUDES}}", include_block)
-                    translated_content = translated_content.replace("{{EFFECT_HEADER}}", effect_code)
+                    translated_content = translated_content.replace(
+                                        "{{EFFECT_HEADER}}",
+                                        f'#include "{SRC_EFFECT_HEADER}"'
+                                    )
                     
                     
-                    print(f"\nSuccessfully injected effect code into {filename}.")
-                    # Print a snippet instead of the whole file to avoid buffer overflow
                     print("Snippet of injection:\n", translated_content[:500], "\n...[truncated]...\n")
 
             dest_file_path = os.path.join(output_dir, filename)
@@ -151,6 +142,6 @@ def generate_juce_project(effect_header_path, template_dir, placeholder="NewProj
         print(f"Error occurred: {e}")
 
 if __name__ == "__main__":
-    SRC_EFFECT_HEADER = "../effects/ffDelay.h"
+    SRC_EFFECT_HEADER = "../effects/FfDelay.h"
     JUCE_TEMPLATE_DIR = "../juce"
     generate_juce_project(SRC_EFFECT_HEADER, JUCE_TEMPLATE_DIR)

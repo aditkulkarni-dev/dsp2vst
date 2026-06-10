@@ -1,5 +1,5 @@
 
-
+#include <string>
 template <typename Effect>
 struct AudioParameter{
     std::string name;
