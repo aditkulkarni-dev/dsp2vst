@@ -7,7 +7,6 @@
 #include <cstdio> // For std::remove
 #include <sndfile.h>
 #include "audio/AudioEngine.h"
-#include "effects/Gain.h"
 #include "effects/ffDelay.h"
 
 // Forward declaration so main() knows it exists!
@@ -55,7 +54,7 @@ int main() {
 
         // 2. Instantiate and configure the engine
         AudioEngine engine(inputPath, outputPath);
-        engine.addEffect(std::make_unique<ffDelay>(22000, 1.0f, sampleRate));
+        engine.addEffect(std::make_unique<FfDelay>(22000, 1.0f, sampleRate));
 
         // 3. Profile the engine run
         auto start = std::chrono::high_resolution_clock::now();

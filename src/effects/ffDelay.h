@@ -22,7 +22,7 @@ private:
     float mix{0.3f};
     CircularBuffer buffer;
     inline static const std::vector<AudioParameter<FfDelay>>
-     params = {{"delay", "delay", 0, 256, 1, 128, &FfDelay::setDelay}, 
+     params = {{"delay", "delay", 0, 22050, 1, 11025, &FfDelay::setDelay}, 
                 {"mix", "mix", 0.0f, 1.0f, 0.01f, 0.5f, &FfDelay::setMix} };
 
 };
