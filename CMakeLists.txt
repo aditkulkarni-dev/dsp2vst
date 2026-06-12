@@ -35,7 +35,7 @@ FetchContent_MakeAvailable(JUCE)
 
 
 if(WIN32)
-    find_package(SndFile CONFIG REQUIRED)
+    find_package(SndFile CONFIG REQUIRED HINTS "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share/sndfile")
     add_library(SndFileTarget INTERFACE)
     target_link_libraries(SndFileTarget INTERFACE SndFile::sndfile)
 else()
