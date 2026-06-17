@@ -59,6 +59,12 @@ DSP2VST separates concerns:
 - DSP development stays independent
 - Plugin wrapping is handled later in the pipeline
 
+### Development pipeline for an effect plugin
+- Write your custom effect
+- Test the effect offline using the offline audio engine
+- Run the `translator.py`
+- Upon the generation of JUCE compatible source files, set the PluginName and EffectName inside CMake
+- Build
 
 ### Example usages of tools
 To process an audio with a given effect, the developer will have to mainly write their Effect separately inside a header file and the `main_engine.cpp` would look something like:
