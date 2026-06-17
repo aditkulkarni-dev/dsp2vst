@@ -59,7 +59,34 @@ DSP2VST separates concerns:
 - DSP development stays independent
 - Plugin wrapping is handled later in the pipeline
 
+### Development pipeline for an effect plugin
+- Write your custom effect
+- Test the effect offline using the offline audio engine
+- Run the `translator.py`
+- Upon the generation of JUCE compatible source files, set the PluginName and EffectName inside CMake
+- Build
 
+### Example usages of tools
+To process an audio with a given effect, the developer will have to mainly write their Effect separately inside a header file and the `main_engine.cpp` would look something like:
+```
+#include "audio/AudioEngine.h"
+#include "effects/FfDelay.h"
 
+int main() {
+    AudioEngine engine("./input.wav", "output.wav", 1024);
 
+    // Add ur effects here
+
+    engine.addEffect(std::make_unique<FfDelay>(22000, 1.0f, 44100));
+    engine.run();
+    return 0;
+}
+```
+To translate the user-defined effect into JUCE-compatible code, the developer will have to make some changes in the `translator.py` by replacing the path variables inside the constructor:
+```
+if __name__ == "__main__":
+    SRC_EFFECT_HEADER = "../effects/FfDelay.h"
+    JUCE_TEMPLATE_DIR = "../juce"
+    generate_juce_project(SRC_EFFECT_HEADER, JUCE_TEMPLATE_DIR)
+```
 
